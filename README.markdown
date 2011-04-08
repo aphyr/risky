@@ -1,7 +1,7 @@
 Risky
 =====
 
-(Hey guys, I'll be porting over tests from our internal suite, and packaging Risky as a gem, in the next few evenings. --Kyle)
+(Hey guys, I'll be porting over tests from our internal suite in the next few evenings. --Kyle)
 
 A simple, lightweight object layer for Riak.
 
