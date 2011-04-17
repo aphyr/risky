@@ -1,4 +1,5 @@
 class Risky
+  require 'set'
   require 'riak'
 
   $LOAD_PATH << File.expand_path(File.dirname(__FILE__))
