@@ -13,7 +13,7 @@ class Risky
   require 'risky/indexes'
   require 'risky/timestamps'
 
-  include Enumerable
+  extend Enumerable
 
   # Get a model by key. Returns nil if not found. You can also pass opts to
   # #reload (e.g. :r, :merge => false).
