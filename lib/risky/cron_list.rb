@@ -20,8 +20,13 @@ module Risky::CronList
     end
 
     def merge(versions)
+      # Order versions chronologically
       p = super(versions)
-      items = sort_items(versions.map(&:items).flatten!.uniq)
+      items = sort_items(
+        versions.inject([]) do |list, version|
+          list |= version.items.reverse
+        end.reverse
+      )
 
       if limit = self.limit
         p.items = items[0...limit]
