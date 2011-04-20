@@ -458,6 +458,7 @@ class Risky
     end
 
     @riak_object.raw_data = @values.to_json
+	@riak_object.content_type = "application/json"
     
     store_opts = {}
     store_opts[:w] = opts[:w] if opts[:w]
