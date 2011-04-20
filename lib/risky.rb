@@ -283,7 +283,7 @@ class Risky
     key = key.to_s unless key.nil?
 
     @riak_object ||= Riak::RObject.new(self.class.bucket, key)
-    @riak_object.content_type = 'application/javascript'
+    @riak_object.content_type = 'application/json'
 
     @new = true
     @merged = false
