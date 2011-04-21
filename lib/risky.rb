@@ -7,6 +7,9 @@ class Risky
   # Exceptions
   require 'risky/invalid'
   require 'risky/not_found'
+
+  # Fix threading autoload bugs
+  require 'risky/threadsafe'
   
   # Plugins
   require 'risky/cron_list'
@@ -229,9 +232,21 @@ class Risky
 
   # The Riak::Client backing this model class.
   def self.riak
-    @riak ||= superclass.riak
+    if c = Thread.current["#{self}.riak"]
+      c
+    elsif @riak and @riak.respond_to? :call
+      Thread.current["#{self}.riak"] = @riak.call(self)
+    elsif @riak
+      Thread.current["#{self}.riak"] = @riak
+    else
+      superclass.riak
+    end
   end
 
+  # Sets the Riak Client backing this model class. If client is a lambda (or
+  # anything responding to #call), it will be invoked to generate a new client
+  # every time Risky feels it is appropriate. Clients are stored in
+  # thread-local storage, under "Classname.riak".
   def self.riak=(client)
     @riak = client
   end
