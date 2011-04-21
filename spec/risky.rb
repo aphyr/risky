@@ -6,7 +6,7 @@ require "#{File.expand_path(File.dirname(__FILE__))}/../lib/risky"
 
 Bacon.summary_on_exit
 
-Risky.riak = Riak::Client.new(:host => '192.168.0.2')
+Risky.riak = Riak::Client.new(:host => '127.0.0.1')
 
 class User < Risky
   value :admin, :default => false
