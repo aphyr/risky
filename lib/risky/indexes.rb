@@ -70,7 +70,7 @@ module Risky::Indexes
           index = Riak::RObject.new(self.class.riak[opts[:bucket]], current)
           index.content_type = 'text/plain'
           index.data = ''
-          index.links = Set.new([@riak_robject.to_link('value')])
+          index.links = Set.new([@riak_object.to_link('value')])
           index.store
         end
       end
