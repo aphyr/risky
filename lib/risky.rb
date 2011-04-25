@@ -113,7 +113,9 @@ class Risky
   def self.each
     bucket.keys(:reload => true) do |keys|
       keys.each do |key|
-        yield self[key]
+        if x = self[key]
+          yield x
+        end
       end
     end
   end
