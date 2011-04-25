@@ -29,7 +29,7 @@ module Risky::Indexes
                 ).walk(:bucket => #{@bucket_name.inspect}).first.first
               )
             rescue Riak::FailedRequest => e
-              raise e unless e.code.to_i == 404
+              raise e unless e.not_found?
               nil
             end
           end

@@ -26,7 +26,7 @@ class Risky
     begin
       new(key).reload(opts)
     rescue Riak::FailedRequest => e
-      raise unless e.code.to_i == 404
+      raise e unless e.not_found?
       nil
     end
   end
