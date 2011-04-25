@@ -25,7 +25,7 @@ module Risky::Indexes
               from_riak_object(
                 Riak::RObject.new(
                   riak[#{opts[:bucket].inspect}],
-                  value
+                  value.to_s
                 ).walk(:bucket => #{@bucket_name.inspect}).first.first
               )
             rescue Riak::FailedRequest => e
@@ -59,6 +59,7 @@ module Risky::Indexes
       current = opts[:proc][self] rescue self[attr.to_s]
       old = @old_indexed_values[attr]
       @old_indexed_values[attr] = current
+
       unless old == current
         # Remove old index
         if old
@@ -67,7 +68,7 @@ module Risky::Indexes
 
         # Create new index
         unless current.nil?
-          index = Riak::RObject.new(self.class.riak[opts[:bucket]], current)
+          index = Riak::RObject.new(self.class.riak[opts[:bucket]], current.to_s)
           index.content_type = 'text/plain'
           index.data = ''
           index.links = Set.new([@riak_object.to_link('value')])
