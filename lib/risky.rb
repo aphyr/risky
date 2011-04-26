@@ -84,22 +84,13 @@ class Risky
     casted
   end
 
-  # Counts the number of models via MR
-  def self.count
-    map("
-      function(v) {
-         return [1];
-      };
-    ").reduce("
-      function(counts, arg) {
-        return [
-          counts.reduce(
-            function(acc, value) {
-              return acc + value
-            }, 0)
-        ];
-      }
-    ", :keep => true).run.first
+  # Counts the number of values in the bucket via key streaming
+  def self.count(opts = {:reload => true})
+    count = 0
+    bucket.keys(opts) do |keys|
+      count += keys.length
+    end
+    count
   end
 
   # Returns true when record deleted.
