@@ -132,6 +132,24 @@ class Risky
   def self.get_or_new(*args)
     self[*args] or new(args.first)
   end
+  
+  # Iterate over all keys.
+  def self.keys(*a)
+    if block_given?
+      bucket.keys(*a) do |keys|
+        # This API is currently inconsistent from protobuffs to http 
+        if keys.kind_of? Array
+          keys.each do |key|
+            yield key
+          end
+        else
+          yield keys
+        end
+      end
+    else
+      bucket.keys(*a)
+    end
+  end
 
   # Establishes methods for manipulating a single link with a given tag.
   def self.link(tag)

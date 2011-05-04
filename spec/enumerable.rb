@@ -27,6 +27,13 @@ describe 'Enumerable' do
     Enum.count.should == 3
   end
 
+  should 'list keys' do
+    Enum.keys.should.be.kind_of? Array
+    Enum.keys do |key|
+      key.should.be.kind_of? String
+    end
+  end
+
   should 'each' do
     seen = []
     Enum.each do |obj|
