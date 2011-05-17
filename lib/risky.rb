@@ -254,6 +254,14 @@ class Risky
     end
   end
 
+  # Forces this model and thread's Riak client to be reset.
+  # If your @riak proc can choose between multiple hosts, calling this on
+  # failure will allow subsequent requests to proceed on another host.
+  def self.riak!
+    Thread.current["self.riak"] = nil
+    riak
+  end
+
   # Sets the Riak Client backing this model class. If client is a lambda (or
   # anything responding to #call), it will be invoked to generate a new client
   # every time Risky feels it is appropriate. Clients are stored in
