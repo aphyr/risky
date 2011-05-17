@@ -258,7 +258,7 @@ class Risky
   # If your @riak proc can choose between multiple hosts, calling this on
   # failure will allow subsequent requests to proceed on another host.
   def self.riak!
-    Thread.current["self.riak"] = nil
+    Thread.current["#{self}.riak"] = nil
     riak
   end
 
