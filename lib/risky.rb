@@ -3,7 +3,7 @@ class Risky
   require 'riak'
 
   $LOAD_PATH << File.expand_path(File.dirname(__FILE__))
- 
+
   # Exceptions
   require 'risky/invalid'
   require 'risky/not_found'
@@ -11,7 +11,7 @@ class Risky
   # Fix threading autoload bugs
   require 'risky/threadsafe'
   
-  # Plugins
+  # Default plugins
   require 'risky/cron_list'
   require 'risky/indexes'
   require 'risky/timestamps'
@@ -416,7 +416,7 @@ class Risky
       self.merged = true
     else
       # Not merging
-      self.values = self.class.cast(JSON.parse(riak_object.raw_data)) rescue {}
+      self.values = self.class.cast(MultiJson.decode(riak_object.raw_data)) rescue {}
       self.class.values.each do |k, v|
         values[k] ||= (v[:default].clone rescue v[:default])
       end
@@ -491,7 +491,7 @@ class Risky
       return false unless valid?
     end
 
-    @riak_object.raw_data = @values.to_json
+    @riak_object.raw_data = MultiJson.encode @values
 	@riak_object.content_type = "application/json"
     
     store_opts = {}
