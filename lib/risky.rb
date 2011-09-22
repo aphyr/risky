@@ -1,6 +1,7 @@
 class Risky
   require 'set'
   require 'riak'
+  require 'multi_json'
 
   $LOAD_PATH << File.expand_path(File.dirname(__FILE__))
 
