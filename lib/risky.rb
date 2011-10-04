@@ -335,7 +335,9 @@ class Risky
 
     # Fill in defults.
     self.class.values.each do |k,v|
-      self[k] ||= (v[:default].clone rescue v[:default])
+      if self[k].nil?
+        self[k] = (v[:default].clone rescue v[:default])
+      end
     end 
   end
 
