@@ -419,7 +419,9 @@ class Risky
       # Not merging
       self.values = self.class.cast(MultiJson.decode(riak_object.raw_data)) rescue {}
       self.class.values.each do |k, v|
-        values[k] ||= (v[:default].clone rescue v[:default])
+        if values[k].nil?
+          values[k] = (v[:default].clone rescue v[:default])
+        end
       end
       self.riak_object = riak_object
       self.new = false
