@@ -1,14 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'bacon'
-require "#{File.expand_path(File.dirname(__FILE__))}/../lib/risky"
+require File.expand_path("#{File.dirname(__FILE__)}/init.rb")
 require 'risky/resolver'
 require 'pp'
 
-Bacon.summary_on_exit
-
-Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1') }
 Thread.abort_on_exception = true
 
 class Multi < Risky

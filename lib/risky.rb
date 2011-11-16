@@ -86,9 +86,9 @@ class Risky
   end
 
   # Counts the number of values in the bucket via key streaming
-  def self.count(opts = {:reload => true})
+  def self.count
     count = 0
-    bucket.keys(opts) do |keys|
+    bucket.keys do |keys|
       count += keys.length
     end
     count
@@ -103,7 +103,7 @@ class Risky
 
   # Iterate over all items using key streaming.
   def self.each
-    bucket.keys(:reload => true) do |keys|
+    bucket.keys do |keys|
       keys.each do |key|
         if x = self[key]
           yield x

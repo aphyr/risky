@@ -1,10 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'bacon'
-require "#{File.expand_path(File.dirname(__FILE__))}/../lib/risky"
-
-Bacon.summary_on_exit
+require File.expand_path("#{File.dirname(__FILE__)}/init.rb")
 
 Risky.riak = lambda { Riak::Client.new(:host => '127.0.0.1') }
 

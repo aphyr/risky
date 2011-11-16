@@ -1,12 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'bacon'
-require "#{File.expand_path(File.dirname(__FILE__))}/../lib/risky"
-
-Bacon.summary_on_exit
-
-Risky.riak = Riak::Client.new(:host => '127.0.0.1')
+require File.expand_path("#{File.dirname(__FILE__)}/init.rb")
 
 class Crud < Risky
   bucket 'crud'
