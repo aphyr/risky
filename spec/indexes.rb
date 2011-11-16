@@ -1,7 +1,3 @@
-#!/usr/bin/env ruby
-
-require File.expand_path("#{File.dirname(__FILE__)}/init.rb")
-
 class Indexed < Risky
   include Risky::Indexes
 

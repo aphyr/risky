@@ -1,6 +1,3 @@
-#!/usr/bin/env ruby
-
-require File.expand_path("#{File.dirname(__FILE__)}/init.rb")
 require 'risky/resolver'
 require 'pp'
 

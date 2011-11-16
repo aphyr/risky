@@ -1,7 +1,3 @@
-#!/usr/bin/env ruby
-
-require File.expand_path("#{File.dirname(__FILE__)}/init.rb")
-
 Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1') }
 
 class Crud < Risky
