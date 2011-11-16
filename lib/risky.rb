@@ -244,29 +244,28 @@ class Risky
 
   # The Riak::Client backing this model class.
   def self.riak
-    if c = Thread.current["#{self}.riak"]
-      c
+    if @riak_client
+      @riak_client
     elsif @riak and @riak.respond_to? :call
-      Thread.current["#{self}.riak"] = @riak.call(self)
+      @riak_client = @riak.call(self)
     elsif @riak
-      Thread.current["#{self}.riak"] = @riak
+      @riak_client = @riak
     else
       superclass.riak
     end
   end
 
-  # Forces this model and thread's Riak client to be reset.
+  # Forces this model's Riak client to be reset.
   # If your @riak proc can choose between multiple hosts, calling this on
   # failure will allow subsequent requests to proceed on another host.
   def self.riak!
-    Thread.current["#{self}.riak"] = nil
+    @riak_client = nil
     riak
   end
 
   # Sets the Riak Client backing this model class. If client is a lambda (or
   # anything responding to #call), it will be invoked to generate a new client
-  # every time Risky feels it is appropriate. Clients are stored in
-  # thread-local storage, under "Classname.riak".
+  # every time Risky feels it is appropriate.
   def self.riak=(client)
     @riak = client
   end
@@ -497,7 +496,7 @@ class Risky
     end
 
     @riak_object.raw_data = MultiJson.encode @values
-	@riak_object.content_type = "application/json"
+	  @riak_object.content_type = "application/json"
     
     store_opts = {}
     store_opts[:w] = opts[:w] if opts[:w]

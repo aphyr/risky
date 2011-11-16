@@ -2,7 +2,7 @@
 
 require File.expand_path("#{File.dirname(__FILE__)}/init.rb")
 
-Risky.riak = lambda { Riak::Client.new(:host => '127.0.0.1') }
+Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1') }
 
 class Crud < Risky
   bucket 'crud'
@@ -25,20 +25,6 @@ class Concurrent < Risky
 end
 
 describe 'Threads' do
-  should 'use a different client in each thread with lambdas' do
-    clients = []
-    (0..3).map do |i|
-      Thread.new do
-        clients << Risky.riak
-      end
-    end.each do |thread|
-      thread.join
-    end
-
-    # Verify clients are distinct
-    clients.uniq.should == clients
-  end
-
   should 'support concurrent modification' do
     Concurrent.bucket.props['allow_mult'].should.be.true
 
