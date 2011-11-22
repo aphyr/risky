@@ -28,13 +28,7 @@ module Risky::CronList
         end.reverse
       )
 
-      if limit = self.limit
-        p.items = items[0...limit]
-        p.removed_items = items[limit..-1] || []
-      else
-        p.items = items
-      end
-
+      p.trim
       p
     end
 
@@ -137,6 +131,10 @@ module Risky::CronList
   #def cleanup
   #end
 
+  def limit
+    self.class.limit
+  end
+
   # Remove an item by key.
   def remove(item_key)
     if key = items.delete(item_key)
@@ -183,7 +181,7 @@ module Risky::CronList
 
   def trim
     # Remove expired items
-    if limit = self.class.limit
+    if limit = self.limit
       if removed = items.slice!(limit..-1)
         @removed_items += removed
       end
