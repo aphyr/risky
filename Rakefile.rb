@@ -29,7 +29,7 @@ gemspec = Gem::Specification.new do |s|
  
   s.required_ruby_version = '>= 1.8.6'
  
-  s.add_dependency('riak-client', '~> 1.0.0.beta')
+  s.add_dependency('riak-client', '~> 1.0.0')
 end
  
 Rake::GemPackageTask.new(gemspec) do |p|
