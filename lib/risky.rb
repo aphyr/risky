@@ -418,7 +418,7 @@ class Risky
       self.merged = true
     else
       # Not merging
-      self.values = self.class.cast(MultiJson.decode(riak_object.raw_data)) rescue {}
+      self.values = self.class.cast(MultiJson.load(riak_object.raw_data)) rescue {}
       self.class.values.each do |k, v|
         if values[k].nil?
           values[k] = (v[:default].clone rescue v[:default])
@@ -495,7 +495,7 @@ class Risky
       return false unless valid?
     end
 
-    @riak_object.raw_data = MultiJson.encode @values
+    @riak_object.raw_data = MultiJson.dump @values
 	  @riak_object.content_type = "application/json"
     
     store_opts = {}
