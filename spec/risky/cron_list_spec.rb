@@ -19,7 +19,7 @@ class CronList < Risky
 end
 
 describe Risky::CronList do
-  before do
+  before :all do
     CronList.each { |x| x.delete }
     @l = CronList.new 'test'
   end

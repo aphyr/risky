@@ -46,7 +46,7 @@ end
     end
 
     ro = Multi.bucket[key]
-    ro.should.conflict
+    ro.conflict?.should be_true
     begin
       ro.siblings.map { |s| s.data[field] }.sort.should == values.sort
     rescue ArgumentError

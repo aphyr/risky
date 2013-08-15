@@ -5,7 +5,7 @@ class Enum < Risky
 end
 
 describe 'Enumerable' do
-  before do
+  before :all do
     # Wipe bucket and replace with 3 items
     Enum.each { |x| x.delete }
 
@@ -20,16 +20,16 @@ describe 'Enumerable' do
   end
 
   it 'can list keys' do
-    Enum.keys.should be_kind_of? Array
+    Enum.keys.should be_kind_of Array
     Enum.keys do |key|
-      key.should be_kind_of? String
+      key.should be_kind_of String
     end
   end
 
   it 'can iterate' do
     seen = []
     Enum.each do |obj|
-      obj.should be_kind_of? Enum
+      obj.should be_kind_of Enum
       seen << obj.key
     end
     seen.sort.should == @keys

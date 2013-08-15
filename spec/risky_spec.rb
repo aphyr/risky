@@ -4,13 +4,13 @@ class User < Risky
 end
 
 describe 'Risky' do
-  should 'have a bucket' do
-    User.bucket.should.be.kind_of? Riak::Bucket
+  it 'has a bucket' do
+    User.bucket.should be_kind_of Riak::Bucket
   end
 
-  should 'store a value and retrieve it' do
+  it 'can store a value and retrieve it' do
     u = User.new('test', 'admin' => true)
-    u.save.should.not.be.false
+    u.save.should_not be_false
 
     u2 = User['test']
     u.key.should == 'test'

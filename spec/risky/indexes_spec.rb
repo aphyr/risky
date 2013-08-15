@@ -14,7 +14,7 @@ class Indexed < Risky
 end
 
 describe 'indexes' do
-  before do
+  before :all do
     Indexed.each { |x| x.delete }
   end
 
