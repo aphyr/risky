@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 class Crud < Risky
   bucket 'crud'
 
@@ -5,15 +7,15 @@ class Crud < Risky
 end
 
 describe 'CRUD' do
-  should 'create a new, blank object' do
+  it 'can create a new, blank object' do
     c = Crud.new
-    c.key.should.be.nil
-    c.value.should.be.nil
-    c.save.should.be.false
+    c.key.should be_nil
+    c.value.should be_nil
+    c.save.should be_false
     c.errors[:key].should == 'is missing'
   end
 
-  should 'create and save a named object with a value' do
+  it 'can create and save a named object with a value' do
     # To be serialized in your best Nazgul voice
     c = Crud.new 'baggins', :value => 'shire!'
     c.key.should == 'baggins'
@@ -21,39 +23,39 @@ describe 'CRUD' do
     c.save.should == c
   end
 
-  should 'read objects' do
-    Crud['mary_poppins'].should.be.nil
+  it 'can read objects' do
+    Crud['mary_poppins'].should be_nil
 
     # This rspec clone *IS* named after Francis Bacon, after all.
     c = Crud.new 'superstition', :value => 'confusion of many states'
-    c.save.should.not.be.false
+    c.save.should_not be_false
 
     c2 = Crud['superstition']
     c2.should === c
     c2.value.should == 'confusion of many states'
   end
 
-  should 'test for existence' do
-    Crud.should.not.exists 'russells_lagrangian_teapot'
-    Crud.should.exists 'superstition'
+  it 'can test for existence' do
+    Crud.exists?('russells_lagrangian_teapot').should be_false
+    Crud.exists?('superstition').should be_true
   end
 
-  should 'delete an unfetched object' do
-    Crud.delete('mary_poppins').should.be.nil
-    Crud.delete('superstition').should.be.true
+  it 'deletes an unfetched object' do
+    Crud.delete('mary_poppins').should be_nil
+    Crud.delete('superstition').should be_true
   end
 
-  should 'delete a fetched object' do
+  it 'can delete a fetched object' do
     v = Crud.new('victim').save
-    v.should.not.be.false
+    v.should_not be_false
     v.delete.should === v
-    Crud.should.not.exists v
+    Crud.exists?(v).should be_false
   end
 
-  should 'compare objects' do
+  it 'can compare objects' do
     a = Crud.new('superstition', 'value' => 'witches')
     b = Crud.new('superstition', 'value' => 'warlocks')
     a.should === b
-    a.should.not == b
+    a.should_not == b
   end
 end

@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 require 'risky/resolver'
 require 'pp'
 
@@ -18,17 +20,16 @@ class Multi < Risky
   value :custom, :resolve => lambda { |xs|
     :custom
   }
-  
+
   def self.merge(v)
     p = super v
 
     p.users = v.map(&:users).min
-   
+
     p
   end
 end
 
-describe Risky::Resolver do
   def conflict(field, values)
     key = rand(100000).to_s
     object = Multi.new(key).save
@@ -43,7 +44,7 @@ describe Risky::Resolver do
       o[field] = value
       o.save
     end
-   
+
     ro = Multi.bucket[key]
     ro.should.conflict
     begin
@@ -61,13 +62,15 @@ describe Risky::Resolver do
       conflict(property, ins)[property].should == out
     end
   end
-  
+
   def set_test(property, ins, out)
     it property do
       conflict(property, ins)[property].to_set.should == out.to_set
     end
   end
 
+
+describe Risky::Resolver do
   set_test 'union', [[1], [2]], [1,2]
   set_test 'union', [[1], nil], [1]
   set_test 'union', [[1,4,1], [2,3], [4,4]], [1,2,3,4]

@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1') }
 
 class Crud < Risky
@@ -21,8 +23,8 @@ class Concurrent < Risky
 end
 
 describe 'Threads' do
-  should 'support concurrent modification' do
-    Concurrent.bucket.props['allow_mult'].should.be.true
+  it 'supports concurrent modification' do
+    Concurrent.bucket.props['allow_mult'].should be_true
 
     # Riak doesn't do well with concurrent *new* writes, so get an existing
     # value in there first.

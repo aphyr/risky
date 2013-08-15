@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 class Item < Risky
   self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 
@@ -10,7 +12,7 @@ class CronList < Risky
   include Risky::CronList
 
   self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
-  
+
   bucket 'cron_list'
   item_class Item
   limit 5
@@ -22,25 +24,25 @@ describe Risky::CronList do
     @l = CronList.new 'test'
   end
 
-  should 'store an item' do
+  it 'stores an item' do
     @l << {:v => 1}
-    @l.items.first.should.be.kind_of String
-    Item[@l.items.first].should.be.nil
-    @l.save.should.not.be.false
+    @l.items.first.should be_kind_of String
+    Item[@l.items.first].should be_nil
+    @l.save.should_not be_false
 
     @l.reload
     @l.items.size.should == 1
-    @l.items.first.should.be.kind_of? String
+    @l.items.first.should be_kind_of String
     i = Item[@l.items.first]
-    i.should.be.kind_of? Item
+    i.should be_kind_of Item
     i.v.should == 1
   end
 
-  should 'limit items' do
+  it 'limits items' do
     10.times do |i|
       @l << {:v => i}
     end
-    @l.save.should.not.be.false
+    @l.save.should_not be_false
     @l.reload
     @l.items.size.should == 5
     @l.items.map { |k|
