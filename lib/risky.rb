@@ -97,7 +97,7 @@ class Risky
   # Returns nil when record was not present to begin with.
   def self.delete(key, opts = {})
     return if key.nil?
-    (bucket.delete(key.to_s, opts)[:code] == 204) or nil
+    bucket.delete(key.to_s, opts)
   end
 
   # Iterate over all items using key streaming.

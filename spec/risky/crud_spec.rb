@@ -42,7 +42,7 @@ describe 'CRUD' do
   end
 
   it 'deletes an unfetched object' do
-    Crud.delete('mary_poppins').should be_nil
+    Crud.delete('mary_poppins').should be_true
     Crud.delete('superstition').should be_true
   end
 
