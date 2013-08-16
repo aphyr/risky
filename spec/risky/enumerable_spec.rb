@@ -1,9 +1,11 @@
+require 'spec_helper'
+
 class Enum < Risky
   bucket 'enum'
 end
 
 describe 'Enumerable' do
-  before do
+  before :all do
     # Wipe bucket and replace with 3 items
     Enum.each { |x| x.delete }
 
@@ -13,27 +15,27 @@ describe 'Enumerable' do
     end
   end
 
-  should 'count' do
+  it 'can count' do
     Enum.count.should == 3
   end
 
-  should 'list keys' do
-    Enum.keys.should.be.kind_of? Array
+  it 'can list keys' do
+    Enum.keys.should be_kind_of Array
     Enum.keys do |key|
-      key.should.be.kind_of? String
+      key.should be_kind_of String
     end
   end
 
-  should 'each' do
+  it 'can iterate' do
     seen = []
     Enum.each do |obj|
-      obj.should.be.kind_of? Enum
+      obj.should be_kind_of Enum
       seen << obj.key
     end
     seen.sort.should == @keys
   end
 
-  should 'inject' do
+  it 'can inject' do
     Enum.inject(0) do |count, obj|
       count + obj.key.size
     end.should == @keys.join('').size

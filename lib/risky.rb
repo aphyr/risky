@@ -1,4 +1,7 @@
 class Risky
+
+  DEFAULT_CONTENT_TYPE = "application/json"
+
   require 'set'
   require 'riak'
   require 'multi_json'
@@ -11,7 +14,7 @@ class Risky
 
   # Fix threading autoload bugs
   require 'risky/threadsafe'
-  
+
   # Default plugins
   require 'risky/cron_list'
   require 'risky/indexes'
@@ -54,7 +57,7 @@ class Risky
     if name
       @bucket_name = name.to_s
     end
-  
+
     riak.bucket(@bucket_name)
   end
 
@@ -98,7 +101,7 @@ class Risky
   # Returns nil when record was not present to begin with.
   def self.delete(key, opts = {})
     return if key.nil?
-    (bucket.delete(key.to_s, opts)[:code] == 204) or nil
+    bucket.delete(key.to_s, opts)
   end
 
   # Iterate over all items using key streaming.
@@ -133,12 +136,12 @@ class Risky
   def self.get_or_new(*args)
     self[*args] or new(args.first)
   end
-  
+
   # Iterate over all keys.
   def self.keys(*a)
     if block_given?
       bucket.keys(*a) do |keys|
-        # This API is currently inconsistent from protobuffs to http 
+        # This API is currently inconsistent from protobuffs to http
         if keys.kind_of? Array
           keys.each do |key|
             yield key
@@ -202,7 +205,7 @@ class Risky
           l.tag == #{tag.inspect}
         end
       end
-      
+
       def #{tag}_count
         @riak_object.links.select{|l| l.tag == #{tag.inspect}}.length
       end
@@ -269,11 +272,11 @@ class Risky
   def self.riak=(client)
     @riak = client
   end
- 
-  # Add a new value to this model. Values aren't necessary; you can 
+
+  # Add a new value to this model. Values aren't necessary; you can
   # use Risky#[], but if you would like to cast values to/from JSON or
-  # specify defaults, you may: 
-  # 
+  # specify defaults, you may:
+  #
   # :default => object (#clone is called for each new instance)
   # :class => Time, Integer, etc. Inferred from default.class if present.
   def self.value(value, opts = {})
@@ -287,7 +290,7 @@ class Risky
       nil
     end
     values[value] = opts.merge(:class => klass)
-    
+
     class_eval "
       def #{value}; @values[#{value.inspect}]; end
       def #{value}=(value); @values[#{value.inspect}] = value; end
@@ -317,7 +320,7 @@ class Risky
     key = key.to_s unless key.nil?
 
     @riak_object ||= Riak::RObject.new(self.class.bucket, key)
-    @riak_object.content_type = 'application/json'
+    @riak_object.content_type = DEFAULT_CONTENT_TYPE
 
     @new = true
     @merged = false
@@ -337,7 +340,7 @@ class Risky
       if self[k].nil?
         self[k] = (v[:default].clone rescue v[:default])
       end
-    end 
+    end
   end
 
   # Two models compare === if they are of matching class and key.
@@ -371,7 +374,7 @@ class Risky
   def as_json(opts = {})
     h = @values.merge(:key => key)
     h[:errors] = errors unless errors.empty?
-    h 
+    h
   end
 
   # Called before creation and validation
@@ -406,7 +409,11 @@ class Risky
       # Engage conflict resolution mode
       final = self.class.merge(
         siblings.map do |sibling|
-          self.class.new.load_riak_object(sibling, :merge => false)
+          robject = Riak::RObject.new(sibling.bucket, sibling.key)
+          robject.content_type = DEFAULT_CONTENT_TYPE
+          robject.siblings = [sibling]
+          robject.vclock = sibling.vclock
+          self.class.new.load_riak_object(robject, :merge => false)
         end
       )
 
@@ -428,7 +435,7 @@ class Risky
       self.new = false
       self.merged = false
     end
-    
+
     self
   end
 
@@ -441,7 +448,7 @@ class Risky
       @riak_object.key = nil
     else
       @riak_object.key = key.to_s
-    end 
+    end
   end
 
   def key
@@ -481,7 +488,7 @@ class Risky
   end
 
   # Saves this model.
-  # 
+  #
   # Calls #validate and #valid? unless :validate is false.
   #
   # Converts @values to_json and saves it to riak.
@@ -496,8 +503,8 @@ class Risky
     end
 
     @riak_object.raw_data = MultiJson.dump @values
-	  @riak_object.content_type = "application/json"
-    
+    @riak_object.content_type = DEFAULT_CONTENT_TYPE
+
     store_opts = {}
     store_opts[:w] = opts[:w] if opts[:w]
     store_opts[:dw] = opts[:dw] if opts[:dw]
@@ -527,10 +534,10 @@ class Risky
     @errors = {}
     validate
     @errors.empty?
-  end  
- 
+  end
+
   # Determines whether the model is valid. Sets the contents of #errors if
-  # invalid. 
+  # invalid.
   def validate
     if key.blank?
       errors[:key] = 'is missing'
