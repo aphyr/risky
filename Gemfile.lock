@@ -10,6 +10,7 @@ GEM
     beefcake (0.3.7)
     builder (3.2.2)
     diff-lcs (1.2.4)
+    excon (0.25.3)
     i18n (0.6.5)
     innertube (1.0.2)
     multi_json (1.7.9)
@@ -32,5 +33,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  excon
   risky!
   rspec
