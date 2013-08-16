@@ -18,6 +18,7 @@ class CronList < Risky
   limit 5
 end
 
+
 describe Risky::CronList do
   before :all do
     CronList.each { |x| x.delete }

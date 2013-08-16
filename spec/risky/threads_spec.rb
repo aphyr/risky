@@ -22,6 +22,7 @@ class Concurrent < Risky
   end
 end
 
+
 describe 'Threads' do
   it 'supports concurrent modification' do
     Concurrent.bucket.props['allow_mult'].should be_true

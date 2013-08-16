@@ -4,6 +4,7 @@ class Enum < Risky
   bucket 'enum'
 end
 
+
 describe 'Enumerable' do
   before :all do
     # Wipe bucket and replace with 3 items

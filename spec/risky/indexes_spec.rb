@@ -13,6 +13,7 @@ class Indexed < Risky
   index :unique, :unique => true
 end
 
+
 describe 'indexes' do
   before :all do
     Indexed.each { |x| x.delete }

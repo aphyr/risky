@@ -6,6 +6,7 @@ class Crud < Risky
   value :value
 end
 
+
 describe 'CRUD' do
   it 'can create a new, blank object' do
     c = Crud.new

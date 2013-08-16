@@ -1,7 +1,5 @@
 require 'spec_helper'
-
 require 'risky/resolver'
-require 'pp'
 
 Thread.abort_on_exception = true
 
@@ -30,44 +28,50 @@ class Multi < Risky
   end
 end
 
-  def conflict(field, values)
-    key = rand(100000).to_s
-    object = Multi.new(key).save
 
-    # Create conflicting versions
-    values.map.with_index do |value, i|
-      Multi.riak.client_id = i + 1
-      [Multi[key], value]
-    end.each.with_index do |pair, i|
-      o, value = pair
-      Multi.riak.client_id = i + 1
-      o[field] = value
-      o.save
-    end
+# sorts array that have nil values (for Ruby 1.8.7)
+def sort(ary)
+  ary.sort { |a,b| ( a && b ) ? a <=> b : ( a ? 1 : -1 ) }
+end
 
-    ro = Multi.bucket[key]
-    ro.conflict?.should be_true
-    begin
-      ro.siblings.map { |s| s.data[field] }.sort.should == values.sort
-    rescue ArgumentError
-      ro.siblings.map { |s| s.data[field] }.to_set.should == values.to_set
-    end
+def conflict(field, values)
+  key = rand(100000).to_s
+  object = Multi.new(key).save
 
-    # Get all conflicts
-    Multi[key, :r => :all]
+  # Create conflicting versions
+  values.each_with_index.map do |value, i|
+    Multi.riak.client_id = i + 1
+    [Multi[key], value]
+  end.each_with_index do |pair, i|
+    o, value = pair
+    Multi.riak.client_id = i + 1
+    o[field] = value
+    o.save
   end
 
-  def test(property, ins, out)
-    it property do
-      conflict(property, ins)[property].should == out
-    end
+  ro = Multi.bucket[key]
+  ro.conflict?.should be_true
+  begin
+    sort(ro.siblings.map { |s| s.data[field] }).should == sort(values)
+  rescue ArgumentError
+    ro.siblings.map { |s| s.data[field] }.to_set.should == values.to_set
   end
 
-  def set_test(property, ins, out)
-    it property do
-      conflict(property, ins)[property].to_set.should == out.to_set
-    end
+  # Get all conflicts
+  Multi[key, {:r => :all}]
+end
+
+def test(property, ins, out)
+  it property do
+    conflict(property, ins)[property].should == out
   end
+end
+
+def set_test(property, ins, out)
+  it property do
+    conflict(property, ins)[property].to_set.should == out.to_set
+  end
+end
 
 
 describe Risky::Resolver do

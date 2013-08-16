@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 class User < Risky
   value :admin, :default => false
   bucket 'users'
