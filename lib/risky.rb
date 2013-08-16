@@ -406,7 +406,7 @@ class Risky
           robject = Riak::RObject.new(sibling.bucket, sibling.key)
           robject.content_type = DEFAULT_CONTENT_TYPE
           robject.siblings = [sibling]
-          robject
+          robject.vclock = sibling.vclock
           self.class.new.load_riak_object(robject, :merge => false)
         end
       )
