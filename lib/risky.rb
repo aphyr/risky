@@ -90,7 +90,11 @@ class Risky
 
   # Counts the number of values in the bucket via key streaming
   def self.count
-    bucket.keys.length
+    count = 0
+    bucket.keys do |keys|
+      count += keys.length
+    end
+    count
   end
 
   # Returns true when record deleted.
@@ -102,9 +106,11 @@ class Risky
 
   # Iterate over all items using key streaming.
   def self.each
-    bucket.keys.each do |key|
-      if x = self[key]
-        yield x
+    bucket.keys do |keys|
+      keys.each do |key|
+        if x = self[key]
+          yield x
+        end
       end
     end
   end
