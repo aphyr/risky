@@ -1,13 +1,13 @@
 require 'spec_helper'
 
 class Enum < Risky
-  bucket 'enum'
+  bucket :risky_enum
 end
 
 describe 'Enumerable' do
   before :all do
     # Wipe bucket and replace with 3 items
-    Enum.each { |x| x.delete }
+    Enum.delete_all
 
     @keys = ['hume', 'locke', 'spinoza']
     @keys.each do |key|

@@ -1,24 +1,62 @@
 require 'spec_helper'
 
 class User < Risky
+  bucket 'risky_users'
+
+  allow_mult
+
   value :admin, :default => false
   value :age
-  bucket 'users'
-  allow_mult
 end
 
 describe 'Risky' do
+  before :each do
+    User.delete_all
+  end
+
   it 'has a bucket' do
     User.bucket.should be_kind_of Riak::Bucket
   end
 
-  it 'can store a value and retrieve it' do
-    u = User.new('test', 'admin' => true)
-    u.save.should_not be_false
+  it "can store a value and retrieve it" do
+    user = User.new('test', 'admin' => true)
+    user.save.should_not be_false
 
-    u2 = User['test']
-    u.key.should == 'test'
-    u.admin.should == true
+    user.key.should == 'test'
+    user.admin.should == true
+  end
+
+  it "can find by id" do
+    user = User.create('test')
+    User.find('test').should == user
+    User.find_by_id('test').should == user
+    User.find_by_key('test').should == user
+  end
+
+  it "returns id as integer" do
+    user = User.new
+    user.id = 1
+    user.save
+    user.id.should == 1
+  end
+
+  it "returns id as string" do
+    user = User.new
+    user.id = 'test'
+    user.save
+    user.id.should == 'test'
+  end
+
+  it "can update attribute" do
+    user = User.new('test', 'admin' => true)
+    user.update_attribute(:admin, false)
+    user.admin.should be_false
+  end
+
+  it "can update attributes" do
+    user = User.new('test', 'admin' => true)
+    user.update_attributes({:admin => false})
+    user.admin.should be_false
   end
 
   context "conflict resolution" do

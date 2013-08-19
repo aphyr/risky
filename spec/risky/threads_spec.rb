@@ -3,12 +3,12 @@ require 'spec_helper'
 Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1') }
 
 class Crud < Risky
-  bucket 'crud'
+  bucket :risky_crud
   value :value
 end
 
 class Concurrent < Risky
-  bucket 'concurrent'
+  bucket :risky_concurrent
   allow_mult
   value :v
 

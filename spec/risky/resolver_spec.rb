@@ -4,7 +4,9 @@ require 'risky/resolver'
 Thread.abort_on_exception = true
 
 class Multi < Risky
-  bucket :mult
+
+  bucket :risky_mult
+
   allow_mult
 
   include Risky::Resolver

@@ -22,284 +22,314 @@ class Risky
 
   extend Enumerable
 
-  # Get a model by key. Returns nil if not found. You can also pass opts to
-  # #reload (e.g. :r, :merge => false).
-  def self.[](key, opts = {})
-    return nil unless key
 
-    begin
-      new(key).reload(opts)
-    rescue Riak::FailedRequest => e
-      raise e unless e.not_found?
-      nil
+  class << self
+    # Get a model by key. Returns nil if not found. You can also pass opts to
+    # #reload (e.g. :r, :merge => false).
+    def [](key, opts = {})
+      return nil unless key
+
+      begin
+        new(key).reload(opts)
+      rescue Riak::FailedRequest => e
+        raise e unless e.not_found?
+        nil
+      end
     end
-  end
 
-  # Returns all model instances from the bucket. Why yes, this *could* be
-  # expensive, Suzy!
-  def self.all(opts = {:reload => true})
-    bucket.keys(opts).map do |key|
-      self[key]
+    def find(key, opts = {})
+      self[key.to_s, opts]
     end
-  end
+    alias_method :find_by_key, :find
+    alias_method :find_by_id, :find
 
-  # Indicates that this model may be multivalued; in which case .merge should
-  # also be defined.
-  def self.allow_mult
-    unless bucket.props['allow_mult']
-      bucket.props = bucket.props.merge('allow_mult' => true)
+    def find_all_by_key(keys, opts = {})
+      return [] if keys.blank?
+      keys.map { |key| find(key, opts) }.compact
     end
-  end
+    alias_method :find_all_by_id, :find_all_by_key
 
-  # The Riak::Bucket backing this model.
-  # If name is passed, *sets* the bucket name.
-  def self.bucket(name = nil)
-    if name
+    def create(key = nil, values = {}, opts = {})
+      new(key, values).save(opts)
+    end
+
+    # Returns all model instances from the bucket. Why yes, this *could* be
+    # expensive, Suzy!
+    def all(opts = {:reload => true})
+      bucket.keys(opts).map do |key|
+        self[key]
+      end
+    end
+
+    # Indicates that this model may be multivalued; in which case .merge should
+    # also be defined.
+    def allow_mult
+      unless bucket.props['allow_mult']
+        bucket.props = bucket.props.merge('allow_mult' => true)
+      end
+    end
+
+    # Deletes all model instances from the bucket
+    def delete_all
+      each do |item|
+        item.delete
+      end
+    end
+
+    # The Riak::Bucket backing this model.
+    # If name is passed, *sets* the bucket name.
+    def bucket(name = nil)
+      if name
+        @bucket_name = name.to_s
+      end
+
+      riak.bucket(@bucket_name)
+    end
+
+    # The string name of the bucket used for storing instances of this model.
+    def bucket_name
+      @bucket_name
+    end
+
+    def bucket_name=(bucket)
       @bucket_name = name.to_s
     end
 
-    riak.bucket(@bucket_name)
-  end
-
-  # The string name of the bucket used for storing instances of this model.
-  def self.bucket_name
-    @bucket_name
-  end
-
-  def self.bucket_name=(bucket)
-    @bucket_name = name.to_s
-  end
-
-  # Casts data to appropriate types for values.
-  def self.cast(data)
-    casted = {}
-    data.each do |k, v|
-      c = @values[k][:class] rescue nil
-      casted[k] = begin
-        if c == Time
-          Time.iso8601(v)
-        else
+    # Casts data to appropriate types for values.
+    def cast(data)
+      casted = {}
+      data.each do |k, v|
+        c = @values[k][:class] rescue nil
+        casted[k] = begin
+          if c == Time
+            Time.iso8601(v)
+          else
+            v
+          end
+        rescue
           v
         end
-      rescue
-        v
       end
+      casted
     end
-    casted
-  end
 
-  # Counts the number of values in the bucket via key streaming
-  def self.count
-    count = 0
-    bucket.keys do |keys|
-      count += keys.length
-    end
-    count
-  end
-
-  # Returns true when record deleted.
-  # Returns nil when record was not present to begin with.
-  def self.delete(key, opts = {})
-    return if key.nil?
-    bucket.delete(key.to_s, opts)
-  end
-
-  # Iterate over all items using key streaming.
-  def self.each
-    bucket.keys do |keys|
-      keys.each do |key|
-        if x = self[key]
-          yield x
-        end
+    # Counts the number of values in the bucket via key streaming
+    def count
+      count = 0
+      bucket.keys do |keys|
+        count += keys.length
       end
+      count
     end
-  end
 
-  # Does the given key exist in our bucket?
-  def self.exists?(key)
-    return if key.nil?
-    bucket.exists? key.to_s
-  end
+    # Returns true when record deleted.
+    # Returns nil when record was not present to begin with.
+    def delete(key, opts = {})
+      return if key.nil?
+      bucket.delete(key.to_s, opts)
+    end
 
-  # Fills in values from a Riak::RObject
-  def self.from_riak_object(riak_object)
-    return nil if riak_object.nil?
-
-    n = new.load_riak_object riak_object
-
-    # Callback
-    n.after_load
-    n
-  end
-
-  # Gets an existing record or creates one.
-  def self.get_or_new(*args)
-    self[*args] or new(args.first)
-  end
-
-  # Iterate over all keys.
-  def self.keys(*a)
-    if block_given?
-      bucket.keys(*a) do |keys|
-        # This API is currently inconsistent from protobuffs to http
-        if keys.kind_of? Array
-          keys.each do |key|
-            yield key
+    # Iterate over all items using key streaming.
+    def each
+      bucket.keys do |keys|
+        keys.each do |key|
+          if x = self[key]
+            yield x
           end
-        else
-          yield keys
         end
       end
-    else
-      bucket.keys(*a)
     end
-  end
 
-  # Establishes methods for manipulating a single link with a given tag.
-  def self.link(tag)
-    tag = tag.to_s
-    class_eval "
-      def #{tag}
-        begin
-          @riak_object.links.find do |l|
-            l.tag == #{tag.inspect}
-          end.key
-        rescue NoMethodError
-          nil
+    # Does the given key exist in our bucket?
+    def exists?(key)
+      return if key.nil?
+      bucket.exists? key.to_s
+    end
+
+    # Fills in values from a Riak::RObject
+    def from_riak_object(riak_object)
+      return nil if riak_object.nil?
+
+      n = new.load_riak_object riak_object
+
+      # Callback
+      n.after_load
+      n
+    end
+
+    # Gets an existing record or creates one.
+    def get_or_new(*args)
+      self[*args] or new(args.first)
+    end
+
+    # Iterate over all keys.
+    def keys(*a)
+      if block_given?
+        bucket.keys(*a) do |keys|
+          # This API is currently inconsistent from protobuffs to http
+          if keys.kind_of? Array
+            keys.each do |key|
+              yield key
+            end
+          else
+            yield keys
+          end
         end
+      else
+        bucket.keys(*a)
       end
+    end
 
-      def #{tag}=(link)
-        @riak_object.links.reject! do |l|
-          l.tag == #{tag.inspect}
+    # Establishes methods for manipulating a single link with a given tag.
+    def link(tag)
+      tag = tag.to_s
+      class_eval %Q{
+        def #{tag}
+          begin
+            @riak_object.links.find do |l|
+              l.tag == #{tag.inspect}
+            end.key
+          rescue NoMethodError
+            nil
+          end
         end
-        if link
+
+        def #{tag}=(link)
+          @riak_object.links.reject! do |l|
+            l.tag == #{tag.inspect}
+          end
+          if link
+            @riak_object.links << link.to_link(#{tag.inspect})
+          end
+        end
+      }
+    end
+
+    # Establishes methods for manipulating a set of links with a given tag.
+    def links(tag)
+      tag = tag.to_s
+      class_eval %Q{
+        def #{tag}
+          @riak_object.links.select do |l|
+            l.tag == #{tag.inspect}
+          end.map do |l|
+            l.key
+          end
+        end
+
+        def add_#{tag}(link)
           @riak_object.links << link.to_link(#{tag.inspect})
         end
-      end
-    "
-  end
 
-  # Establishes methods for manipulating a set of links with a given tag.
-  def self.links(tag)
-    tag = tag.to_s
-    class_eval "
-      def #{tag}
-        @riak_object.links.select do |l|
-          l.tag == #{tag.inspect}
-        end.map do |l|
-          l.key
+        def remove_#{tag}(link)
+          @riak_object.links.delete link.to_link(#{tag.inspect})
         end
-      end
 
-      def add_#{tag}(link)
-        @riak_object.links << link.to_link(#{tag.inspect})
-      end
-
-      def remove_#{tag}(link)
-        @riak_object.links.delete link.to_link(#{tag.inspect})
-      end
-
-      def clear_#{tag}
-        @riak_object.links.delete_if do |l|
-          l.tag == #{tag.inspect}
+        def clear_#{tag}
+          @riak_object.links.delete_if do |l|
+            l.tag == #{tag.inspect}
+          end
         end
-      end
 
-      def #{tag}_count
-        @riak_object.links.select{|l| l.tag == #{tag.inspect}}.length
-      end
-    "
-  end
-
-  # Mapreduce helper
-  def self.map(*args)
-    mr.map(*args)
-  end
-
-  # Merges n versions of a record together, for read-repair.
-  # Returns the merged record.
-  def self.merge(versions)
-    versions.first
-  end
-
-  # Begins a mapreduce on this model's bucket.
-  # If no keys are given, operates on the entire bucket.
-  # If keys are given, operates on those keys first.
-  def self.mr(keys = nil)
-    mr = Riak::MapReduce.new(riak)
-
-    if keys
-      # Add specific keys
-      [*keys].compact.inject(mr) do |mr, key|
-        mr.add @bucket_name, key.to_s
-      end
-    else
-      # Add whole bucket
-      mr.add @bucket_name
+        def #{tag}_count
+          @riak_object.links.select{|l| l.tag == #{tag.inspect}}.length
+        end
+      }
     end
-  end
 
-  # MR helper.
-  def self.reduce(*args)
-    mr.reduce(*args)
-  end
-
-  # The Riak::Client backing this model class.
-  def self.riak
-    if @riak_client
-      @riak_client
-    elsif @riak and @riak.respond_to? :call
-      @riak_client = @riak.call(self)
-    elsif @riak
-      @riak_client = @riak
-    else
-      superclass.riak
+    # Mapreduce helper
+    def map(*args)
+      mr.map(*args)
     end
-  end
 
-  # Forces this model's Riak client to be reset.
-  # If your @riak proc can choose between multiple hosts, calling this on
-  # failure will allow subsequent requests to proceed on another host.
-  def self.riak!
-    @riak_client = nil
-    riak
-  end
-
-  # Sets the Riak Client backing this model class. If client is a lambda (or
-  # anything responding to #call), it will be invoked to generate a new client
-  # every time Risky feels it is appropriate.
-  def self.riak=(client)
-    @riak = client
-  end
-
-  # Add a new value to this model. Values aren't necessary; you can
-  # use Risky#[], but if you would like to cast values to/from JSON or
-  # specify defaults, you may:
-  #
-  # :default => object (#clone is called for each new instance)
-  # :class => Time, Integer, etc. Inferred from default.class if present.
-  def self.value(value, opts = {})
-    value = value.to_s
-
-    klass = if opts[:class]
-      opts[:class]
-    elsif opts.include? :default
-      opts[:default].class
-    else
-      nil
+    # Merges n versions of a record together, for read-repair.
+    # Returns the merged record.
+    def merge(versions)
+      versions.first
     end
-    values[value] = opts.merge(:class => klass)
 
-    class_eval "
-      def #{value}; @values[#{value.inspect}]; end
-      def #{value}=(value); @values[#{value.inspect}] = value; end
-    "
-  end
+    # Begins a mapreduce on this model's bucket.
+    # If no keys are given, operates on the entire bucket.
+    # If keys are given, operates on those keys first.
+    def mr(keys = nil)
+      mr = Riak::MapReduce.new(riak)
 
-  # A list of all values we track.
-  def self.values
-    @values ||= {}
+      if keys
+        # Add specific keys
+        [*keys].compact.inject(mr) do |mr, key|
+          mr.add @bucket_name, key.to_s
+        end
+      else
+        # Add whole bucket
+        mr.add @bucket_name
+      end
+    end
+
+    # MR helper.
+    def reduce(*args)
+      mr.reduce(*args)
+    end
+
+    # The Riak::Client backing this model class.
+    def riak
+      Thread.current[:riak_client] ||=
+        if @riak and @riak.respond_to?(:call)
+          @riak.call(self)
+        elsif @riak
+          @riak
+        else
+          superclass.riak
+        end
+    end
+
+    # Forces Riak client for this thread to be reset.
+    # If your @riak proc can choose between multiple hosts, calling this on
+    # failure will allow subsequent requests to proceed on another host.
+    def riak!
+      Thread.current[:riak_client] = nil
+      riak
+    end
+
+    # Sets the Riak Client backing this model class. If client is a lambda (or
+    # anything responding to #call), it will be invoked to generate a new client
+    # every time Risky feels it is appropriate.
+    def riak=(client)
+      @riak = client
+    end
+
+    # Add a new value to this model. Values aren't necessary; you can
+    # use Risky#[], but if you would like to cast values to/from JSON or
+    # specify defaults, you may:
+    #
+    # :default => object (#clone is called for each new instance)
+    # :class => Time, Integer, etc. Inferred from default.class if present.
+    def value(value, opts = {})
+      value = value.to_s
+
+      klass = if opts[:class]
+        opts[:class]
+      elsif opts.include? :default
+        opts[:default].class
+      else
+        nil
+      end
+      values[value] = opts.merge(:class => klass)
+
+      class_eval %Q{
+        def #{value}
+          @values[#{value.inspect}]
+        end
+
+        def #{value}=(value)
+          @values[#{value.inspect}] = value
+        end
+      }
+    end
+
+    # A list of all values we track.
+    def values
+      @values ||= {}
+    end
   end
 
 
@@ -347,6 +377,7 @@ class Risky
   def ===(o)
     o.class == self.class and o.key.to_s == self.key.to_s rescue false
   end
+  alias_method :==, :===
 
   # Access the values hash.
   def [](k)
@@ -455,6 +486,16 @@ class Risky
     @riak_object.key
   end
 
+  def id
+    Integer(key)
+  rescue ArgumentError
+    key
+  end
+
+  def id=(value)
+    self.key = value
+  end
+
   def merged=(merged)
     @merged = !!merged
   end
@@ -516,6 +557,18 @@ class Risky
     @new = false
 
     self
+  end
+
+  def update_attribute(attribute, value)
+    self.send("#{attribute}=", value)
+    self.save
+  end
+
+  def update_attributes(attributes)
+    attributes.each do |attribute, value|
+      self.send("#{attribute}=", value)
+    end
+    self.save
   end
 
   # This is provided for convenience; #save does *not* use this method, and you
