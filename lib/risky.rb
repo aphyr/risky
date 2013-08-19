@@ -18,6 +18,7 @@ class Risky
   # Default plugins
   require 'risky/cron_list'
   require 'risky/indexes'
+  require 'risky/secondary_indexes'
   require 'risky/timestamps'
 
   extend Enumerable
