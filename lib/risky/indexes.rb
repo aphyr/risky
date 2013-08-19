@@ -4,7 +4,7 @@ module Risky::Indexes
   def self.included(base)
     base.instance_eval do
       @indexes = {}
-     
+
       def indexes
         @indexes
       end
@@ -16,7 +16,7 @@ module Risky::Indexes
       def index(attribute, opts = {})
         opts[:bucket] ||= "#{@bucket_name}_by_#{attribute}"
         @indexes[attribute] = opts
-        
+
         class_eval %{
           def self.by_#{attribute}(value)
             return nil unless value
@@ -40,7 +40,7 @@ module Risky::Indexes
 
   def initialize(*a)
     @old_indexed_values = {}
-    
+
     super *a
   end
 
@@ -94,7 +94,7 @@ module Risky::Indexes
     # Validate unique indexes
     self.class.indexes.each do |attr, opts|
       next unless opts[:unique]
-      
+
       current = opts[:proc][self] rescue self[attr.to_s]
       old = @old_indexed_values[attr]
 

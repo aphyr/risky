@@ -5,7 +5,8 @@ class Indexed < Risky
 
   self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 
-  bucket 'indexes'
+  bucket 'risky_indexes'
+
   value :value
   value :unique
 
@@ -16,7 +17,7 @@ end
 
 describe 'indexes' do
   before :all do
-    Indexed.each { |x| x.delete }
+    Indexed.delete_all
   end
 
   it 'can index a string' do

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 class Crud < Risky
-  bucket 'crud'
+  bucket :risky_crud
 
   value :value
 end
@@ -56,7 +56,7 @@ describe 'CRUD' do
   it 'can compare objects' do
     a = Crud.new('superstition', 'value' => 'witches')
     b = Crud.new('superstition', 'value' => 'warlocks')
+    a.should == b
     a.should === b
-    a.should_not == b
   end
 end

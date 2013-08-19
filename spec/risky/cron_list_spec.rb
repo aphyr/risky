@@ -3,7 +3,7 @@ require 'spec_helper'
 class Item < Risky
   self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 
-  bucket 'items'
+  bucket :risky_items
 
   value :v
 end
@@ -13,7 +13,8 @@ class CronList < Risky
 
   self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 
-  bucket 'cron_list'
+  bucket :risky_cron_list
+
   item_class Item
   limit 5
 end
@@ -21,7 +22,7 @@ end
 
 describe Risky::CronList do
   before :all do
-    CronList.each { |x| x.delete }
+    CronList.delete_all
     @l = CronList.new 'test'
   end
 
