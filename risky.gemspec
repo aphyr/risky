@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["aphyr@aphyr.com"]
   gem.description   = %q{A lightweight Ruby ORM for Riak.}
   gem.summary       = %q{A Ruby ORM for the Riak distributed database.}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/aphyr/risky"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "risky"
   gem.require_paths = ["lib"]
   gem.version       = Risky::VERSION
+  gem.license       = "MIT"
 
   gem.add_dependency "riak-client", "~> 1.2.0"
   gem.add_development_dependency "rspec"

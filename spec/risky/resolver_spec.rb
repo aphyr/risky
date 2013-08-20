@@ -4,13 +4,11 @@ require 'risky/resolver'
 Thread.abort_on_exception = true
 
 class Multi < Risky
-
-  bucket :risky_mult
-
-  allow_mult
-
+  include Risky::ListKeys
   include Risky::Resolver
 
+  bucket :risky_mult
+  allow_mult
   value :users, :default => []
   value :union, :resolve => :union
   value :intersection, :resolve => Risky::Resolver::Resolvers.method(:intersection)

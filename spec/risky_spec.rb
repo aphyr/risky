@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 class User < Risky
+  include Risky::ListKeys
+
   bucket 'risky_users'
-
   allow_mult
-
   value :admin, :default => false
   value :age
 end
@@ -26,11 +26,14 @@ describe 'Risky' do
     user.admin.should == true
   end
 
-  it "can find by id" do
+  it "can find" do
     user = User.create('test')
     User.find('test').should == user
-    User.find_by_id('test').should == user
-    User.find_by_key('test').should == user
+  end
+
+  it "can find all by key" do
+    user = User.create('test')
+    User.find_all_by_key(['test']).should == [user]
   end
 
   it "returns id as integer" do
