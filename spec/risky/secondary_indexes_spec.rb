@@ -8,7 +8,7 @@ class Album < Risky
   bucket :risky_albums
   allow_mult
   index2i :artist_id, :map => true
-  index2i :label_key, :map => '_key', :allow_nil => true
+  index2i :label_key, :map => '_key', :finder => :find_by_id, :allow_nil => true
   index2i :genre, :type => :bin, :allow_nil => true
   index2i :tags, :type => :bin, :multi => true, :allow_nil => true
   value :name
@@ -27,6 +27,10 @@ class Label < Risky
 
   bucket :risky_labels
   value :name
+
+  def self.find_by_id(id)
+    find(id)
+  end
 end
 
 class City < Risky
@@ -69,6 +73,15 @@ describe SecondaryIndexes do
   it "defines association getter and setter methods when using suffix" do
     album = Album.new(1)
     album.label = label
+    album.label.should == label
+  end
+
+  it "can use a custom finder" do
+    album = Album.create(1, {:name => 'Bomber', :year => 1979},
+      {:artist_id => artist.id, :label_key => label.id})
+
+    Label.should_receive(:find_by_id).with(label.id).and_return(label)
+
     album.label.should == label
   end
 

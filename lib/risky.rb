@@ -42,14 +42,11 @@ class Risky
     def find(key, opts = {})
       self[key.to_s, opts]
     end
-    alias_method :find_by_key, :find
-    alias_method :find_by_id, :find
 
     def find_all_by_key(keys, opts = {})
       return [] if keys.blank?
       keys.map { |key| find(key, opts) }.compact
     end
-    alias_method :find_all_by_id, :find_all_by_key
 
     def create(key = nil, values = {}, opts = {})
       new(key, values).save(opts)

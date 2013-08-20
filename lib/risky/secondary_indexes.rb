@@ -16,7 +16,7 @@ module SecondaryIndexes
     def index2i(name, opts = {})
       name = name.to_s
 
-      opts.replace({:type => :int, :multi => false}.merge(opts))
+      opts.replace({:type => :int, :multi => false, :finder => :find}.merge(opts))
       indexes2i[name] = opts
 
       class_eval %Q{
@@ -31,9 +31,11 @@ module SecondaryIndexes
 
       if opts[:map]
         if opts[:map] === true # assume that it ends in _id
-          map_model name[0..-4]
+          model_name = name[0..-4]
+          map_model(model_name, opts)
         else
-          map_model name[0..-(opts[:map].length + 1)], :suffix => opts[:map]
+          model_name = name[0..-(opts[:map].length + 1)]
+          map_model(model_name, opts.merge(:suffix => opts[:map]))
         end
       end
     end
@@ -45,10 +47,10 @@ module SecondaryIndexes
 
     def find_by_index(index2i, value)
       index = "#{index2i}_#{indexes2i[index2i.to_s][:type]}"
-      id = bucket.get_index(index, value).first
-      return nil if id.nil?
+      key = bucket.get_index(index, value).first
+      return nil if key.nil?
 
-      self.find id
+      find(key)
     end
 
     # RIAK_TODO: Use MR with index as starting point
@@ -57,18 +59,17 @@ module SecondaryIndexes
       keys = bucket.get_index(index, value)
       return [] if keys.blank?
 
-      self.find_all_by_key keys
+      find_all_by_key(keys)
     end
 
     def find_all_keys_by_index(index2i, value)
       index = "#{index2i}_#{indexes2i[index2i.to_s][:type]}"
       bucket.get_index(index, value)
     end
-    alias_method :find_all_ids_by_index, :find_all_keys_by_index
 
     def create(key, values = {}, indexes2i = {}, opts = {})
       obj = new key, values, indexes2i
-      obj.save opts
+      obj.save(opts)
     end
 
     # The map_model method is a convenience method to map the model_id to getters and setters.
@@ -99,7 +100,7 @@ module SecondaryIndexes
 
       class_eval %Q{
         def #{model_name}
-          @#{model_name} ||= #{class_name}.find_by_id #{model_name}#{opts[:suffix]}
+          @#{model_name} ||= #{class_name}.#{opts[:finder]} #{model_name}#{opts[:suffix]}
         end
 
         def #{model_name}=(value)
