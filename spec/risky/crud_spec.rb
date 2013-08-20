@@ -1,8 +1,9 @@
 require 'spec_helper'
 
 class Crud < Risky
-  bucket :risky_crud
+  include Risky::ListKeys
 
+  bucket :risky_crud
   value :value
 end
 

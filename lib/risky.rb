@@ -16,6 +16,7 @@ class Risky
   require 'risky/threadsafe'
 
   # Default plugins
+  require 'risky/list_keys'
   require 'risky/cron_list'
   require 'risky/indexes'
   require 'risky/secondary_indexes'
@@ -54,26 +55,11 @@ class Risky
       new(key, values).save(opts)
     end
 
-    # Returns all model instances from the bucket. Why yes, this *could* be
-    # expensive, Suzy!
-    def all(opts = {:reload => true})
-      bucket.keys(opts).map do |key|
-        self[key]
-      end
-    end
-
     # Indicates that this model may be multivalued; in which case .merge should
     # also be defined.
     def allow_mult
       unless bucket.props['allow_mult']
         bucket.props = bucket.props.merge('allow_mult' => true)
-      end
-    end
-
-    # Deletes all model instances from the bucket
-    def delete_all
-      each do |item|
-        item.delete
       end
     end
 
@@ -114,31 +100,11 @@ class Risky
       casted
     end
 
-    # Counts the number of values in the bucket via key streaming
-    def count
-      count = 0
-      bucket.keys do |keys|
-        count += keys.length
-      end
-      count
-    end
-
     # Returns true when record deleted.
     # Returns nil when record was not present to begin with.
     def delete(key, opts = {})
       return if key.nil?
       bucket.delete(key.to_s, opts)
-    end
-
-    # Iterate over all items using key streaming.
-    def each
-      bucket.keys do |keys|
-        keys.each do |key|
-          if x = self[key]
-            yield x
-          end
-        end
-      end
     end
 
     # Does the given key exist in our bucket?
@@ -161,24 +127,6 @@ class Risky
     # Gets an existing record or creates one.
     def get_or_new(*args)
       self[*args] or new(args.first)
-    end
-
-    # Iterate over all keys.
-    def keys(*a)
-      if block_given?
-        bucket.keys(*a) do |keys|
-          # This API is currently inconsistent from protobuffs to http
-          if keys.kind_of? Array
-            keys.each do |key|
-              yield key
-            end
-          else
-            yield keys
-          end
-        end
-      else
-        bucket.keys(*a)
-      end
     end
 
     # Establishes methods for manipulating a single link with a given tag.

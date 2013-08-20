@@ -2,39 +2,38 @@ require 'spec_helper'
 
 Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 class Album < Risky
+  include Risky::ListKeys
   include Risky::SecondaryIndexes
 
   bucket :risky_albums
-
+  allow_mult
   index2i :artist_id, :map => true
   index2i :label_key, :map => '_key', :allow_nil => true
   index2i :genre, :type => :bin, :allow_nil => true
   index2i :tags, :type => :bin, :multi => true, :allow_nil => true
-
   value :name
   value :year
-
-  allow_mult
 end
 
 class Artist < Risky
-  bucket :risky_artists
+  include Risky::ListKeys
 
+  bucket :risky_artists
   value :name
 end
 
 class Label < Risky
-  bucket :risky_labels
+  include Risky::ListKeys
 
+  bucket :risky_labels
   value :name
 end
 
 class City < Risky
   include Risky::SecondaryIndexes
+
   bucket :risky_cities
-
   index2i :country_id, :type => :invalid, :allow_nil => true
-
   value :name
   value :details
 end

@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 class User < Risky
+  include Risky::ListKeys
+
   bucket 'risky_users'
-
   allow_mult
-
   value :admin, :default => false
   value :age
 end

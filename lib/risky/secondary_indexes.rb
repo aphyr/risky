@@ -1,6 +1,11 @@
 require 'risky/inflector'
 
 module SecondaryIndexes
+
+  def self.included(base)
+    base.extend ClassMethods
+  end
+
   module ClassMethods
     # Add a new secondary index to this model.
     # Default option is :type => :int, can also be :bin
@@ -108,10 +113,6 @@ module SecondaryIndexes
         end
       }
     end
-  end
-
-  def self.included(base)
-    base.extend ClassMethods
   end
 
 
