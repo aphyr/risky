@@ -44,7 +44,6 @@ describe SecondaryIndexes do
   let(:artist) { Artist.create(1, :name => 'Motorhead') }
   let(:label) { Label.create(1, :name => 'Bronze Records') }
 
-
   before :each do
     Album.delete_all
     Artist.delete_all

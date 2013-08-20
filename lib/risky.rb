@@ -374,11 +374,14 @@ class Risky
     end
   end
 
-  # Two models compare === if they are of matching class and key.
-  def ===(o)
-    o.class == self.class and o.key.to_s == self.key.to_s rescue false
+  def ==(object)
+    object.class == self.class && object.key.present? && object.key == self.key
   end
-  alias_method :==, :===
+  alias :eql? :==
+
+  def ===(object)
+    object.is_a?(self.class)
+  end
 
   # Access the values hash.
   def [](k)
