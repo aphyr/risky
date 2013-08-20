@@ -43,7 +43,7 @@ class City < Risky
 end
 
 
-describe SecondaryIndexes do
+describe Risky::SecondaryIndexes do
   let(:artist) { Artist.create(1, :name => 'Motorhead') }
   let(:label) { Label.create(1, :name => 'Bronze Records') }
 

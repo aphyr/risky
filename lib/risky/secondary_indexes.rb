@@ -1,6 +1,6 @@
 require 'risky/inflector'
 
-module SecondaryIndexes
+module Risky::SecondaryIndexes
 
   def self.included(base)
     base.extend ClassMethods
