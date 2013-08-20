@@ -147,7 +147,7 @@ describe Risky::SecondaryIndexes do
   it "finds all by int secondary index" do
     album1 = Album.create(1, {:name => 'Bomber', :year => 1979},
       {:artist_id => artist.id, :label_key => label.id})
-    album2 = Album.create(1, {:name => 'Ace Of Spaces', :year => 1980},
+    album2 = Album.create(2, {:name => 'Ace Of Spaces', :year => 1980},
       {:artist_id => artist.id, :label_key => label.id})
 
     albums = Album.find_all_by_index(:artist_id, artist.id)

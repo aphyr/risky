@@ -53,11 +53,9 @@ module Risky::SecondaryIndexes
       find(key)
     end
 
-    # RIAK_TODO: Use MR with index as starting point
     def find_all_by_index(index2i, value)
       index = "#{index2i}_#{indexes2i[index2i.to_s][:type]}"
       keys = bucket.get_index(index, value)
-      return [] if keys.blank?
 
       find_all_by_key(keys)
     end
