@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 class Enum < Risky
+  include Risky::ListKeys
+
   bucket :risky_enum
 end
 

@@ -1,8 +1,6 @@
 Risky
 =====
 
-(Hey guys, I'll be porting over tests from our internal suite in the next few evenings. --Kyle)
-
 A simple, lightweight object layer for Riak.
 
     $ gem install risky
@@ -14,11 +12,11 @@ A simple, lightweight object layer for Riak.
     User.new('clu', 'fights' => 'for the users').save
     User['clu']['fights'] #=> 'for the users'
 
-Built on top of seancribb's excellent riak-client, Risky provides basic
+Built on top of basho's excellent riak-client, Risky provides basic
 infrastructure for designing models with attributes (including defaults and
 casting to/from JSON), conflict resolution, validation, lifecycle callbacks,
 link-walking, mapreduce, and more. Modules are available for timestamps,
-chronologically ordered lists, and basic secondary indexes.
+chronologically ordered lists, and secondary indexes (2i).
 
 Risky does not provide the rich API of Ripple, but it also does not require
 activesupport. It strives to be understandable, minimal, and modular. Magic is
@@ -55,6 +53,11 @@ Show me the code!
       # Provides user.followers, a list of links with the 'followers' tag.
       links :followers
     end
+
+Contributors
+------------
+
+Dalibor Nasevic ([@dalibor](https://github.com/dalibor))
 
 License
 -------

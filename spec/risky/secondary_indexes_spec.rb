@@ -2,48 +2,50 @@ require 'spec_helper'
 
 Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 class Album < Risky
+  include Risky::ListKeys
   include Risky::SecondaryIndexes
 
   bucket :risky_albums
-
+  allow_mult
   index2i :artist_id, :map => true
-  index2i :label_key, :map => '_key', :allow_nil => true
+  index2i :label_key, :map => '_key', :finder => :find_by_id, :allow_nil => true
   index2i :genre, :type => :bin, :allow_nil => true
   index2i :tags, :type => :bin, :multi => true, :allow_nil => true
-
   value :name
   value :year
-
-  allow_mult
 end
 
 class Artist < Risky
-  bucket :risky_artists
+  include Risky::ListKeys
 
+  bucket :risky_artists
   value :name
 end
 
 class Label < Risky
-  bucket :risky_labels
+  include Risky::ListKeys
 
+  bucket :risky_labels
   value :name
+
+  def self.find_by_id(id)
+    find(id)
+  end
 end
 
 class City < Risky
   include Risky::SecondaryIndexes
+
   bucket :risky_cities
-
   index2i :country_id, :type => :invalid, :allow_nil => true
-
   value :name
   value :details
 end
 
 
-describe SecondaryIndexes do
+describe Risky::SecondaryIndexes do
   let(:artist) { Artist.create(1, :name => 'Motorhead') }
   let(:label) { Label.create(1, :name => 'Bronze Records') }
-
 
   before :each do
     Album.delete_all
@@ -71,6 +73,15 @@ describe SecondaryIndexes do
   it "defines association getter and setter methods when using suffix" do
     album = Album.new(1)
     album.label = label
+    album.label.should == label
+  end
+
+  it "can use a custom finder" do
+    album = Album.create(1, {:name => 'Bomber', :year => 1979},
+      {:artist_id => artist.id, :label_key => label.id})
+
+    Label.should_receive(:find_by_id).with(label.id).and_return(label)
+
     album.label.should == label
   end
 
@@ -136,7 +147,7 @@ describe SecondaryIndexes do
   it "finds all by int secondary index" do
     album1 = Album.create(1, {:name => 'Bomber', :year => 1979},
       {:artist_id => artist.id, :label_key => label.id})
-    album2 = Album.create(1, {:name => 'Ace Of Spaces', :year => 1980},
+    album2 = Album.create(2, {:name => 'Ace Of Spaces', :year => 1980},
       {:artist_id => artist.id, :label_key => label.id})
 
     albums = Album.find_all_by_index(:artist_id, artist.id)
