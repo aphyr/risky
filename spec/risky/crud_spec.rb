@@ -54,8 +54,16 @@ describe 'CRUD' do
     Crud.exists?(v).should be_false
   end
 
-  it 'can compare objects' do
-    Crud.new(nil, 'value' => 'witches').should_not == Crud.new(nil, 'value' => 'warlocks')
+  it 'checks objects equality by keys' do
     Crud.new('superstition', 'value' => 'witches').should == Crud.new('superstition', 'value' => 'warlocks')
+  end
+
+  it 'checks objects equality by object ids when no keys' do
+    object1 = Crud.new(nil, 'value' => 'witches')
+    object2 = Crud.new(nil, 'value' => 'witches')
+
+    object1.should == object1
+    object2.should == object2
+    object1.should_not == object2
   end
 end
