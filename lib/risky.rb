@@ -1,29 +1,21 @@
+require 'set'
+require 'riak'
+require 'multi_json'
+
 class Risky
+  autoload :Invalid,                'risky/invalid'
+  autoload :NotFound,               'risky/not_found'
+  autoload :ListKeys,               'risky/list_keys'
+  autoload :CronList,               'risky/cron_list'
+  autoload :Indexes,                'risky/indexes'
+  autoload :SecondaryIndexes,       'risky/secondary_indexes'
+  autoload :Timestamps,             'risky/timestamps'
+  autoload :Inflector,              'risky/inflector'
+  autoload :PaginatedCollection,    'risky/paginated_collection'
 
   DEFAULT_CONTENT_TYPE = "application/json"
 
-  require 'set'
-  require 'riak'
-  require 'multi_json'
-
-  $LOAD_PATH << File.expand_path(File.dirname(__FILE__))
-
-  # Exceptions
-  require 'risky/invalid'
-  require 'risky/not_found'
-
-  # Fix threading autoload bugs
-  require 'risky/threadsafe'
-
-  # Default plugins
-  require 'risky/list_keys'
-  require 'risky/cron_list'
-  require 'risky/indexes'
-  require 'risky/secondary_indexes'
-  require 'risky/timestamps'
-
   extend Enumerable
-
 
   class << self
     # Get a model by key. Returns nil if not found. You can also pass opts to
