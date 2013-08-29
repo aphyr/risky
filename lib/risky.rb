@@ -320,7 +320,8 @@ class Risky
   end
 
   def ==(object)
-    object.class == self.class && object.key.present? && object.key == self.key
+    object.class == self.class &&
+      (object.key.present? && object.key == self.key || object.object_id == self.object_id)
   end
   alias :eql? :==
 
