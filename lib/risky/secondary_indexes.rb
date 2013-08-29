@@ -1,4 +1,5 @@
 require 'risky/inflector'
+require 'risky/paginated_collection'
 
 module Risky::SecondaryIndexes
 
@@ -63,6 +64,16 @@ module Risky::SecondaryIndexes
     def find_all_keys_by_index(index2i, value)
       index = "#{index2i}_#{indexes2i[index2i.to_s][:type]}"
       bucket.get_index(index, value)
+    end
+
+    def paginate_by_index(index2i, value, opts = {})
+      keys = paginate_keys_by_index(index2i, value, opts)
+      Risky::PaginatedCollection.new(find_all_by_key(keys), keys)
+    end
+
+    def paginate_keys_by_index(index2i, value, opts = {})
+      index = "#{index2i}_#{indexes2i[index2i.to_s][:type]}"
+      bucket.get_index(index, value, opts)
     end
 
     def create(key, values = {}, indexes2i = {}, opts = {})
