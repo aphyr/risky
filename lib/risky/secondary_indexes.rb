@@ -1,6 +1,3 @@
-require 'risky/inflector'
-require 'risky/paginated_collection'
-
 module Risky::SecondaryIndexes
 
   def self.included(base)
