@@ -7,9 +7,7 @@ module Risky::ListKeys
   module ClassMethods
     # Returns all model instances from the bucket
     def all(opts = {:reload => true})
-      bucket.keys(opts).map do |key|
-        self[key]
-      end
+      find_all_by_key(bucket.keys(opts))
     end
 
     # Counts the number of values in the bucket via key streaming.
