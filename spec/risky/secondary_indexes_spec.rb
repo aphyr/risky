@@ -171,6 +171,40 @@ describe Risky::SecondaryIndexes do
     Album.find_all_by_index(:tags, 'rock').should == [album]
   end
 
+  it "paginates keys" do
+    album1 = Album.create('1', {:name => 'Bomber', :year => 1979},
+      {:artist_id => artist.id, :label_key => label.id})
+    album2 = Album.create('2', {:name => 'Ace Of Spaces', :year => 1980},
+      {:artist_id => artist.id, :label_key => label.id})
+    album3 = Album.create('3', {:name => 'Overkill', :year => 1979},
+      {:artist_id => artist.id, :label_key => label.id})
+
+    page1 = Album.paginate_keys_by_index(:artist_id, artist.id, :max_results => 2)
+    page1.should == ['1', '2']
+    page1.continuation.should_not be_blank
+
+    page2 = Album.paginate_keys_by_index(:artist_id, artist.id, :max_results => 2, :continuation => page1.continuation)
+    page2.should == ['3']
+    page2.continuation.should be_blank
+  end
+
+  it "paginates risky objects" do
+    album1 = Album.create('1', {:name => 'Bomber', :year => 1979},
+      {:artist_id => artist.id, :label_key => label.id})
+    album2 = Album.create('2', {:name => 'Ace Of Spaces', :year => 1980},
+      {:artist_id => artist.id, :label_key => label.id})
+    album3 = Album.create('3', {:name => 'Overkill', :year => 1979},
+      {:artist_id => artist.id, :label_key => label.id})
+
+    page1 = Album.paginate_by_index(:artist_id, artist.id, :max_results => 2)
+    page1.should == [album1, album2]
+    page1.continuation.should_not be_blank
+
+    page2 = Album.paginate_by_index(:artist_id, artist.id, :max_results => 2, :continuation => page1.continuation)
+    page2.should == [album3]
+    page2.continuation.should be_blank
+  end
+
   it "raises an exception when index is nil" do
     album = Album.new(1)
     expect { album.save }.to raise_error(ArgumentError)
