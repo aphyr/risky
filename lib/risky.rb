@@ -35,9 +35,12 @@ class Risky
       self[key.to_s, opts]
     end
 
-    def find_all_by_key(keys, opts = {})
+    def find_all_by_key(keys)
       return [] if keys.blank?
-      keys.map { |key| find(key, opts) }.compact
+
+      keys.map!(&:to_s)
+      results = bucket.get_many(keys)
+      keys.map { |key| from_riak_object(results[key]) }.compact
     end
 
     def create(key = nil, values = {}, opts = {})
