@@ -69,6 +69,8 @@ module Risky::SecondaryIndexes
     end
 
     def paginate_keys_by_index(index2i, value, opts = {})
+      opts.reject! { |k, v| v.nil? }
+
       index = "#{index2i}_#{indexes2i[index2i.to_s][:type]}"
       bucket.get_index(index, value, opts)
     end
