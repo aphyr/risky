@@ -1,6 +1,5 @@
 require 'spec_helper'
 
-Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 class Album < Risky
   include Risky::ListKeys
   include Risky::SecondaryIndexes

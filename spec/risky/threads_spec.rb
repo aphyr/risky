@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-Risky.riak = proc { Riak::Client.new(:host => '127.0.0.1') }
-
 class Crud < Risky
   include Risky::ListKeys
 
