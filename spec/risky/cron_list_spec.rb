@@ -3,8 +3,6 @@ require 'spec_helper'
 class Item < Risky
   include Risky::ListKeys
 
-  self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
-
   bucket :risky_items
   value :v
 end
@@ -12,8 +10,6 @@ end
 class CronList < Risky
   include Risky::ListKeys
   include Risky::CronList
-
-  self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
 
   bucket :risky_cron_list
 

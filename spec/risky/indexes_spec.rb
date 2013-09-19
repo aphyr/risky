@@ -4,8 +4,6 @@ class Indexed < Risky
   include Risky::ListKeys
   include Risky::Indexes
 
-  self.riak = lambda { |k| Riak::Client.new(:host => '127.0.0.1', :protocol => 'pbc') }
-
   bucket :risky_indexes
   value :value
   value :unique
