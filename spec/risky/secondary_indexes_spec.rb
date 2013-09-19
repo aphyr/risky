@@ -85,8 +85,8 @@ describe Risky::SecondaryIndexes do
   end
 
   it "resets association if associated object is not saved" do
-    artist = Artist.new(1)
-    album = Album.new(1)
+    artist = Artist.new('new_key')
+    album = Album.new('new_key')
     album.artist = artist
     album.artist.should be_nil
   end
@@ -114,9 +114,7 @@ describe Risky::SecondaryIndexes do
   end
 
   it "persists association after save" do
-    sleep 3 # we need to sleep here until delete from before block finishes
-
-    album = Album.new(1)
+    album = Album.new('persist_key')
     album.name = 'Ace of Spades'
     album.artist_id = artist.id
     album.save
@@ -129,7 +127,7 @@ describe Risky::SecondaryIndexes do
     album.artist.should == artist
     album.artist_id.should == artist.id
 
-    album = Album.find(album.id)
+    album = Album.find(album.key)
 
     album.artist.should == artist
     album.artist_id.should == artist.id
