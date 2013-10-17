@@ -12,8 +12,7 @@ class Risky
   autoload :Timestamps,             'risky/timestamps'
   autoload :Inflector,              'risky/inflector'
   autoload :PaginatedCollection,    'risky/paginated_collection'
-
-  DEFAULT_CONTENT_TYPE = "application/json"
+  autoload :GZip,                   'risky/gzip'
 
   extend Enumerable
 
@@ -72,6 +71,10 @@ class Risky
 
     def bucket_name=(bucket)
       @bucket_name = name.to_s
+    end
+
+    def content_type
+      "application/json"
     end
 
     # Casts data to appropriate types for values.
@@ -291,7 +294,7 @@ class Risky
     key = key.to_s unless key.nil?
 
     @riak_object ||= Riak::RObject.new(self.class.bucket, key)
-    @riak_object.content_type = DEFAULT_CONTENT_TYPE
+    @riak_object.content_type = self.class.content_type
 
     @new = true
     @merged = false
@@ -386,8 +389,9 @@ class Risky
       final = self.class.merge(
         siblings.map do |sibling|
           robject = Riak::RObject.new(sibling.bucket, sibling.key)
-          robject.content_type = DEFAULT_CONTENT_TYPE
-          robject.siblings = [sibling]
+          robject.raw_data = sibling.raw_data
+          robject.content_type = sibling.content_type
+          # robject.siblings = [sibling]
           robject.vclock = sibling.vclock
           self.class.new.load_riak_object(robject, :merge => false)
         end
@@ -401,7 +405,7 @@ class Risky
       self.merged = true
     else
       # Not merging
-      self.values = self.class.cast(MultiJson.load(riak_object.raw_data)) rescue {}
+      self.values = self.class.cast(riak_object.data) rescue {}
       self.class.values.each do |k, v|
         if values[k].nil?
           values[k] = (v[:default].clone rescue v[:default])
@@ -488,8 +492,8 @@ class Risky
       return false unless valid?
     end
 
-    @riak_object.raw_data = MultiJson.dump @values
-    @riak_object.content_type = DEFAULT_CONTENT_TYPE
+    @riak_object.data = @values
+    @riak_object.content_type = self.class.content_type
 
     store_opts = {}
     store_opts[:w] = opts[:w] if opts[:w]
