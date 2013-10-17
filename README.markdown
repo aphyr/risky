@@ -58,6 +58,7 @@ Contributors
 ------------
 
 Dalibor Nasevic ([@dalibor](https://github.com/dalibor))
+Marc Heiligers ([@marcheiligers](https://github.com/marcheiligers))
 
 License
 -------
