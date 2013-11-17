@@ -329,12 +329,12 @@ class Risky
 
   # Access the values hash.
   def [](k)
-    @values[k]
+    values[k]
   end
 
   # Access the values hash.
   def []=(k, v)
-    @values[k] = v
+    values[k] = v
   end
 
   def after_create
